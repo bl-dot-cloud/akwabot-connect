@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import Hero from "@/components/landing/Hero";
 import Services from "@/components/landing/Services";
 import ChatInterface from "@/components/chatbot/ChatInterface";
 
 const Index = () => {
+  const { user } = useAuth();
   const [isChatMinimized, setIsChatMinimized] = useState(true);
 
   return (
@@ -21,11 +23,13 @@ const Index = () => {
         </section>
       </main>
 
-      {/* Floating Chat Interface */}
-      <ChatInterface 
-        isMinimized={isChatMinimized}
-        onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
-      />
+      {/* Floating Chat Interface - Only show if user is authenticated */}
+      {user && (
+        <ChatInterface 
+          isMinimized={isChatMinimized}
+          onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
+        />
+      )}
     </div>
   );
 };

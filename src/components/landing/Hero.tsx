@@ -1,8 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Shield, Clock } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const Hero = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleChatClick = () => {
+    if (!user) {
+      navigate('/auth');
+    } else {
+      // Scroll to chat interface
+      const chatElement = document.querySelector('[data-chat-interface]');
+      if (chatElement) {
+        chatElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -32,18 +49,33 @@ const Hero = () => {
               variant="hero" 
               size="lg" 
               className="text-lg px-8 py-6 h-auto"
+              onClick={handleChatClick}
             >
               <MessageCircle className="mr-2 h-6 w-6" />
               Start Chat Now
             </Button>
             
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="text-lg px-8 py-6 h-auto text-white border-white hover:bg-white hover:text-primary"
-            >
-              Login to Account
-            </Button>
+            {user ? (
+              <Link to="/dashboard">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-6 h-auto text-white border-white hover:bg-white hover:text-primary"
+                >
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-6 h-auto text-white border-white hover:bg-white hover:text-primary"
+                >
+                  Login to Account
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Features Grid */}

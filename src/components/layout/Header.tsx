@@ -1,9 +1,25 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Menu, X, Phone, Mail, MapPin } from "lucide-react";
+import { MessageCircle, Menu, X, Phone, Mail, MapPin, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut, profile } = useAuth();
+  const navigate = useNavigate();
+
+  const handleChatClick = () => {
+    if (!user) {
+      navigate('/auth');
+    } else {
+      // Scroll to chat or open chat interface
+      const chatElement = document.querySelector('[data-chat-interface]');
+      if (chatElement) {
+        chatElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
@@ -60,13 +76,36 @@ const Header = () => {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline">
-              Login
-            </Button>
-            <Button variant="hero">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Start Chat
-            </Button>
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="outline">
+                    <User className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button variant="outline" onClick={signOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+                <Button variant="hero" onClick={handleChatClick}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Start Chat
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline">
+                    Login
+                  </Button>
+                </Link>
+                <Button variant="hero" onClick={handleChatClick}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Start Chat
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,13 +134,36 @@ const Header = () => {
                 Contact
               </a>
               <div className="flex flex-col space-y-2 pt-4">
-                <Button variant="outline" className="w-full">
-                  Login
-                </Button>
-                <Button variant="hero" className="w-full">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Start Chat
-                </Button>
+                {user ? (
+                  <>
+                    <Link to="/dashboard" className="w-full">
+                      <Button variant="outline" className="w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Button variant="outline" className="w-full" onClick={signOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                    <Button variant="hero" className="w-full" onClick={handleChatClick}>
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Start Chat
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth" className="w-full">
+                      <Button variant="outline" className="w-full">
+                        Login
+                      </Button>
+                    </Link>
+                    <Button variant="hero" className="w-full" onClick={handleChatClick}>
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Start Chat
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>

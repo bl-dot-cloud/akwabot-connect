@@ -14,16 +14,188 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          admin_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_admin: boolean
+          is_bot: boolean
+          session_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          is_bot?: boolean
+          session_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          is_bot?: boolean
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      complaints: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at: string
+          description: string
+          file_url: string | null
+          id: string
+          status: Database["public"]["Enums"]["status_type"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string
+          description: string
+          file_url?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["status_type"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string
+          description?: string
+          file_url?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["status_type"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          phone_number: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      complaint_category:
+        | "loan_issue"
+        | "customer_service"
+        | "account_update"
+        | "general_inquiry"
+      status_type: "pending" | "in_progress" | "resolved" | "closed"
+      user_role: "customer" | "admin" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +322,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      complaint_category: [
+        "loan_issue",
+        "customer_service",
+        "account_update",
+        "general_inquiry",
+      ],
+      status_type: ["pending", "in_progress", "resolved", "closed"],
+      user_role: ["customer", "admin", "staff"],
+    },
   },
 } as const

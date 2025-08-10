@@ -116,7 +116,7 @@ const ChatInterface = ({ isMinimized = false, onToggleMinimize }: ChatInterfaceP
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[600px] bg-white rounded-xl shadow-elegant border border-border z-50 flex flex-col">
+    <div className="fixed bottom-4 right-4 w-96 h-[600px] bg-white rounded-xl shadow-elegant border border-border z-50 flex flex-col" data-chat-interface>
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-trust text-white p-4 rounded-t-xl flex items-center justify-between">
         <div className="flex items-center space-x-3">
