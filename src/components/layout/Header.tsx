@@ -78,12 +78,6 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link to="/dashboard">
-                  <Button variant="outline">
-                    <User className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Button>
-                </Link>
                 <Button variant="outline" onClick={signOut}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
@@ -136,12 +130,6 @@ const Header = () => {
               <div className="flex flex-col space-y-2 pt-4">
                 {user ? (
                   <>
-                    <Link to="/dashboard" className="w-full">
-                      <Button variant="outline" className="w-full">
-                        <User className="h-4 w-4 mr-2" />
-                        Dashboard
-                      </Button>
-                    </Link>
                     <Button variant="outline" className="w-full" onClick={signOut}>
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out

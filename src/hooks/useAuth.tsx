@@ -51,6 +51,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setTimeout(() => {
             refreshProfile();
           }, 0);
+          // Redirect to dashboard on successful login
+          if (event === 'SIGNED_IN') {
+            window.location.href = '/dashboard';
+          }
         } else {
           setProfile(null);
         }
