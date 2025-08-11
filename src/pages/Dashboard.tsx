@@ -5,10 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, FileText, Bell, LogOut, User, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { MessageCircle, FileText, Bell, LogOut, Clock, CheckCircle, AlertCircle, Plus, Home } from 'lucide-react';
 import { format } from 'date-fns';
+import ComplaintForm from '@/components/dashboard/ComplaintForm';
+import ChatHistoryCard from '@/components/dashboard/ChatHistoryCard';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user, loading, signOut, profile } = useAuth();
@@ -67,13 +69,13 @@ const Dashboard = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'text-warning bg-warning/10';
+        return 'bg-warning/10 text-warning border-warning/20';
       case 'in_progress':
-        return 'text-primary bg-primary/10';
+        return 'bg-primary/10 text-primary border-primary/20';
       case 'resolved':
-        return 'text-trust bg-trust/10';
+        return 'bg-success/10 text-success border-success/20';
       default:
-        return 'text-muted-foreground bg-muted/10';
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
     }
   };
 
@@ -90,10 +92,25 @@ const Dashboard = () => {
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent':
+        return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'high':
+        return 'bg-warning/10 text-warning border-warning/20';
+      case 'medium':
+        return 'bg-primary/10 text-primary border-primary/20';
+      case 'low':
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
+      default:
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
+    }
+  };
+
   if (loading || loadingData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -101,7 +118,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-border shadow-sm">
+      <header className="bg-card border-b border-border shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -113,47 +130,93 @@ const Dashboard = () => {
                 <p className="text-sm text-muted-foreground">Welcome back, {profile?.full_name || user?.email}</p>
               </div>
             </div>
-            <Button variant="outline" onClick={signOut} className="flex items-center space-x-2">
-              <LogOut className="h-4 w-4" />
-              <span>Sign Out</span>
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Link to="/">
+                <Button variant="outline" size="sm">
+                  <Home className="h-4 w-4 mr-2" />
+                  Home
+                </Button>
+              </Link>
+              <Button variant="outline" onClick={signOut} size="sm">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Your Account Overview</h2>
+              <p className="text-muted-foreground">Manage your complaints, view chat history, and track notifications</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <ComplaintForm onComplaintSubmitted={fetchUserData} />
+              <Link to="/">
+                <Button variant="outline">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Start New Chat
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Complaints</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Complaints</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{complaints.filter(c => c.status !== 'resolved').length}</div>
-              <p className="text-xs text-muted-foreground">Total: {complaints.length}</p>
+              <div className="text-2xl font-bold">{complaints.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {complaints.filter(c => c.status !== 'resolved').length} active
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Chat Sessions</CardTitle>
-              <MessageCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{chatSessions.length}</div>
-              <p className="text-xs text-muted-foreground">Total conversations</p>
+              <div className="text-2xl font-bold text-warning">
+                {complaints.filter(c => c.status === 'pending').length}
+              </div>
+              <p className="text-xs text-muted-foreground">Awaiting review</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Unread Notifications</CardTitle>
-              <Bell className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <AlertCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{notifications.filter(n => !n.read).length}</div>
-              <p className="text-xs text-muted-foreground">Total: {notifications.length}</p>
+              <div className="text-2xl font-bold text-primary">
+                {complaints.filter(c => c.status === 'in_progress').length}
+              </div>
+              <p className="text-xs text-muted-foreground">Being handled</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+              <CheckCircle className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-success">
+                {complaints.filter(c => c.status === 'resolved').length}
+              </div>
+              <p className="text-xs text-muted-foreground">Completed</p>
             </CardContent>
           </Card>
         </div>
@@ -176,26 +239,45 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {complaints.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No complaints or requests submitted yet.</p>
+                  <div className="text-center py-12">
+                    <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No complaints submitted yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Get started by submitting your first complaint or service request
+                    </p>
+                    <ComplaintForm onComplaintSubmitted={fetchUserData} />
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {complaints.map((complaint) => (
-                      <div key={complaint.id} className="border border-border rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold">{complaint.title}</h3>
-                          <Badge className={getStatusColor(complaint.status)}>
-                            {getStatusIcon(complaint.status)}
-                            <span className="ml-1 capitalize">{complaint.status.replace('_', ' ')}</span>
-                          </Badge>
+                      <div key={complaint.id} className="border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="font-semibold text-lg">{complaint.title}</h3>
+                          <div className="flex gap-2">
+                            <Badge variant="outline" className={getPriorityColor(complaint.priority)}>
+                              {complaint.priority}
+                            </Badge>
+                            <Badge variant="outline" className={getStatusColor(complaint.status)}>
+                              {getStatusIcon(complaint.status)}
+                              <span className="ml-1 capitalize">{complaint.status.replace('_', ' ')}</span>
+                            </Badge>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">{complaint.description}</p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Category: {complaint.category.replace('_', ' ')}</span>
-                          <span>{format(new Date(complaint.created_at), 'MMM d, yyyy')}</span>
+                        <p className="text-muted-foreground mb-3">{complaint.description}</p>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span className="capitalize">
+                            Category: {complaint.category.replace('_', ' ')}
+                          </span>
+                          <span>
+                            Submitted: {format(new Date(complaint.created_at), 'MMM d, yyyy \'at\' h:mm a')}
+                          </span>
                         </div>
+                        {complaint.admin_notes && (
+                          <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                            <p className="text-sm font-medium mb-1">Admin Notes:</p>
+                            <p className="text-sm text-muted-foreground">{complaint.admin_notes}</p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -214,24 +296,23 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {chatSessions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No chat sessions yet. Start a conversation with our support team!</p>
-                    <Button className="mt-4" onClick={() => window.location.href = '/'}>
-                      Start Chat
-                    </Button>
+                  <div className="text-center py-12">
+                    <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No chat sessions yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Start a conversation with our AI assistant or support team
+                    </p>
+                    <Link to="/">
+                      <Button>
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Start Chat
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {chatSessions.map((session) => (
-                      <div key={session.id} className="border border-border rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">{session.title || 'Chat Session'}</h3>
-                          <span className="text-sm text-muted-foreground">
-                            {format(new Date(session.updated_at), 'MMM d, yyyy h:mm a')}
-                          </span>
-                        </div>
-                      </div>
+                      <ChatHistoryCard key={session.id} session={session} />
                     ))}
                   </div>
                 )}
@@ -249,21 +330,31 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {notifications.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No notifications yet.</p>
+                  <div className="text-center py-12">
+                    <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No notifications yet</h3>
+                    <p className="text-muted-foreground">
+                      You'll see important updates and messages here
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {notifications.map((notification) => (
-                      <div key={notification.id} className={`border border-border rounded-lg p-4 ${!notification.read ? 'bg-primary/5' : ''}`}>
+                      <div 
+                        key={notification.id} 
+                        className={`border border-border rounded-lg p-4 ${
+                          !notification.read ? 'bg-primary/5 border-primary/20' : ''
+                        }`}
+                      >
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="font-semibold">{notification.title}</h3>
-                          {!notification.read && <div className="w-2 h-2 bg-primary rounded-full" />}
+                          {!notification.read && (
+                            <div className="w-2 h-2 bg-primary rounded-full mt-1" />
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}
+                        <p className="text-muted-foreground mb-3">{notification.message}</p>
+                        <span className="text-sm text-muted-foreground">
+                          {format(new Date(notification.created_at), 'MMM d, yyyy \'at\' h:mm a')}
                         </span>
                       </div>
                     ))}
