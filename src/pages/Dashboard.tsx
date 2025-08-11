@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, FileText, Bell, LogOut, Clock, CheckCircle, AlertCircle, Plus, Home } from 'lucide-react';
+import { MessageCircle, FileText, Bell, LogOut, Clock, CheckCircle, AlertCircle, Home } from 'lucide-react';
 import { format } from 'date-fns';
 import ComplaintForm from '@/components/dashboard/ComplaintForm';
 import ChatHistoryCard from '@/components/dashboard/ChatHistoryCard';
@@ -17,54 +18,91 @@ const Dashboard = () => {
   const [complaints, setComplaints] = useState<any[]>([]);
   const [chatSessions, setChatSessions] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [loadingData, setLoadingData] = useState(false);
+
+  console.log('Dashboard render - user:', user, 'loading:', loading, 'profile:', profile);
+
+  // Handle loading state
+  if (loading) {
+    console.log('Dashboard: Still loading auth state');
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Redirect if not authenticated
-  if (!loading && !user) {
+  if (!user) {
+    console.log('Dashboard: No user found, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  useEffect(() => {
-    if (user) {
-      fetchUserData();
-    }
-  }, [user]);
-
   const fetchUserData = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('fetchUserData: No user available');
+      return;
+    }
+
+    console.log('fetchUserData: Starting to fetch data for user:', user.id);
+    setLoadingData(true);
 
     try {
       // Fetch complaints
-      const { data: complaintsData } = await supabase
+      const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      if (complaintsError) {
+        console.error('Error fetching complaints:', complaintsError);
+      } else {
+        console.log('Fetched complaints:', complaintsData);
+        setComplaints(complaintsData || []);
+      }
+
       // Fetch chat sessions
-      const { data: chatData } = await supabase
+      const { data: chatData, error: chatError } = await supabase
         .from('chat_sessions')
         .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
+      if (chatError) {
+        console.error('Error fetching chat sessions:', chatError);
+      } else {
+        console.log('Fetched chat sessions:', chatData);
+        setChatSessions(chatData || []);
+      }
+
       // Fetch notifications
-      const { data: notificationsData } = await supabase
+      const { data: notificationsData, error: notificationsError } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      setComplaints(complaintsData || []);
-      setChatSessions(chatData || []);
-      setNotifications(notificationsData || []);
+      if (notificationsError) {
+        console.error('Error fetching notifications:', notificationsError);
+      } else {
+        console.log('Fetched notifications:', notificationsData);
+        setNotifications(notificationsData || []);
+      }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('Error in fetchUserData:', error);
     } finally {
       setLoadingData(false);
     }
   };
+
+  useEffect(() => {
+    if (user && !loadingData) {
+      console.log('Dashboard useEffect: Fetching user data');
+      fetchUserData();
+    }
+  }, [user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -107,13 +145,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading || loadingData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  console.log('Dashboard: Rendering main content');
 
   return (
     <div className="min-h-screen bg-background">
@@ -221,149 +253,159 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        {/* Show loading indicator for data */}
+        {loadingData && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-2 text-muted-foreground">Loading your data...</span>
+          </div>
+        )}
+
         {/* Main Content */}
-        <Tabs defaultValue="complaints" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="complaints">Complaints & Requests</TabsTrigger>
-            <TabsTrigger value="chats">Chat History</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          </TabsList>
+        {!loadingData && (
+          <Tabs defaultValue="complaints" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="complaints">Complaints & Requests</TabsTrigger>
+              <TabsTrigger value="chats">Chat History</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="complaints">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Complaints & Requests</CardTitle>
-                <CardDescription>
-                  Track the status of your submitted complaints and service requests
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {complaints.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No complaints submitted yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Get started by submitting your first complaint or service request
-                    </p>
-                    <ComplaintForm onComplaintSubmitted={fetchUserData} />
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {complaints.map((complaint) => (
-                      <div key={complaint.id} className="border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <h3 className="font-semibold text-lg">{complaint.title}</h3>
-                          <div className="flex gap-2">
-                            <Badge variant="outline" className={getPriorityColor(complaint.priority)}>
-                              {complaint.priority}
-                            </Badge>
-                            <Badge variant="outline" className={getStatusColor(complaint.status)}>
-                              {getStatusIcon(complaint.status)}
-                              <span className="ml-1 capitalize">{complaint.status.replace('_', ' ')}</span>
-                            </Badge>
+            <TabsContent value="complaints">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Complaints & Requests</CardTitle>
+                  <CardDescription>
+                    Track the status of your submitted complaints and service requests
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {complaints.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No complaints submitted yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Get started by submitting your first complaint or service request
+                      </p>
+                      <ComplaintForm onComplaintSubmitted={fetchUserData} />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {complaints.map((complaint) => (
+                        <div key={complaint.id} className="border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="font-semibold text-lg">{complaint.title}</h3>
+                            <div className="flex gap-2">
+                              <Badge variant="outline" className={getPriorityColor(complaint.priority)}>
+                                {complaint.priority}
+                              </Badge>
+                              <Badge variant="outline" className={getStatusColor(complaint.status)}>
+                                {getStatusIcon(complaint.status)}
+                                <span className="ml-1 capitalize">{complaint.status.replace('_', ' ')}</span>
+                              </Badge>
+                            </div>
                           </div>
-                        </div>
-                        <p className="text-muted-foreground mb-3">{complaint.description}</p>
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          <span className="capitalize">
-                            Category: {complaint.category.replace('_', ' ')}
-                          </span>
-                          <span>
-                            Submitted: {format(new Date(complaint.created_at), 'MMM d, yyyy \'at\' h:mm a')}
-                          </span>
-                        </div>
-                        {complaint.admin_notes && (
-                          <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                            <p className="text-sm font-medium mb-1">Admin Notes:</p>
-                            <p className="text-sm text-muted-foreground">{complaint.admin_notes}</p>
+                          <p className="text-muted-foreground mb-3">{complaint.description}</p>
+                          <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <span className="capitalize">
+                              Category: {complaint.category.replace('_', ' ')}
+                            </span>
+                            <span>
+                              Submitted: {format(new Date(complaint.created_at), 'MMM d, yyyy \'at\' h:mm a')}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="chats">
-            <Card>
-              <CardHeader>
-                <CardTitle>Chat History</CardTitle>
-                <CardDescription>
-                  Your previous conversations with our support team
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {chatSessions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No chat sessions yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Start a conversation with our AI assistant or support team
-                    </p>
-                    <Link to="/">
-                      <Button>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Start Chat
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {chatSessions.map((session) => (
-                      <ChatHistoryCard key={session.id} session={session} />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notifications</CardTitle>
-                <CardDescription>
-                  Recent updates and important information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {notifications.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No notifications yet</h3>
-                    <p className="text-muted-foreground">
-                      You'll see important updates and messages here
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {notifications.map((notification) => (
-                      <div 
-                        key={notification.id} 
-                        className={`border border-border rounded-lg p-4 ${
-                          !notification.read ? 'bg-primary/5 border-primary/20' : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold">{notification.title}</h3>
-                          {!notification.read && (
-                            <div className="w-2 h-2 bg-primary rounded-full mt-1" />
+                          {complaint.admin_notes && (
+                            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                              <p className="text-sm font-medium mb-1">Admin Notes:</p>
+                              <p className="text-sm text-muted-foreground">{complaint.admin_notes}</p>
+                            </div>
                           )}
                         </div>
-                        <p className="text-muted-foreground mb-3">{notification.message}</p>
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(notification.created_at), 'MMM d, yyyy \'at\' h:mm a')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="chats">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Chat History</CardTitle>
+                  <CardDescription>
+                    Your previous conversations with our support team
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {chatSessions.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No chat sessions yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Start a conversation with our AI assistant or support team
+                      </p>
+                      <Link to="/">
+                        <Button>
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Start Chat
+                        </Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {chatSessions.map((session) => (
+                        <ChatHistoryCard key={session.id} session={session} />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="notifications">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notifications</CardTitle>
+                  <CardDescription>
+                    Recent updates and important information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {notifications.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No notifications yet</h3>
+                      <p className="text-muted-foreground">
+                        You'll see important updates and messages here
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {notifications.map((notification) => (
+                        <div 
+                          key={notification.id} 
+                          className={`border border-border rounded-lg p-4 ${
+                            !notification.read ? 'bg-primary/5 border-primary/20' : ''
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-semibold">{notification.title}</h3>
+                            {!notification.read && (
+                              <div className="w-2 h-2 bg-primary rounded-full mt-1" />
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mb-3">{notification.message}</p>
+                          <span className="text-sm text-muted-foreground">
+                            {format(new Date(notification.created_at), 'MMM d, yyyy \'at\' h:mm a')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

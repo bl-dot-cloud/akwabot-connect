@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,8 +25,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   const refreshProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('refreshProfile: No user available');
+      return;
+    }
     
+    console.log('refreshProfile: Fetching profile for user:', user.id);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -33,29 +38,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('user_id', user.id)
         .maybeSingle();
       
-      if (error) throw error;
-      setProfile(data);
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        console.log('Profile fetched successfully:', data);
+        setProfile(data);
+      }
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in refreshProfile:', error);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, 'Session:', session);
+        
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          setTimeout(() => {
-            refreshProfile();
-          }, 0);
-          // Redirect to dashboard on successful login
-          if (event === 'SIGNED_IN') {
-            window.location.href = '/dashboard';
-          }
+          // Don't redirect here, let the component handle it
+          console.log('User authenticated, fetching profile...');
+          await refreshProfile();
         } else {
+          console.log('No user session, clearing profile');
           setProfile(null);
         }
         
@@ -64,23 +76,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          refreshProfile();
-        }, 0);
-      }
-      
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
 
-    return () => subscription.unsubscribe();
+        console.log('Initial session check:', session);
+        
+        if (!mounted) return;
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('Initial session found, fetching profile...');
+          await refreshProfile();
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    getInitialSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    console.log('Attempting sign up for:', email);
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -95,12 +131,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     
     if (error) {
+      console.error('Sign up error:', error);
       toast({
         variant: "destructive",
         title: "Sign up failed",
         description: error.message
       });
     } else {
+      console.log('Sign up successful');
       toast({
         title: "Sign up successful",
         description: "Please check your email for verification link"
@@ -111,18 +149,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('Attempting sign in for:', email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
     if (error) {
+      console.error('Sign in error:', error);
       toast({
         variant: "destructive",
         title: "Sign in failed",
         description: error.message
       });
     } else {
+      console.log('Sign in successful');
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in"
@@ -133,14 +174,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    console.log('Attempting sign out');
     const { error } = await supabase.auth.signOut();
     if (error) {
+      console.error('Sign out error:', error);
       toast({
         variant: "destructive",
         title: "Sign out failed",
         description: error.message
       });
     } else {
+      console.log('Sign out successful');
       toast({
         title: "Signed out",
         description: "You have been signed out successfully"
@@ -158,6 +202,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     profile,
     refreshProfile
   };
+
+  console.log('AuthProvider render - loading:', loading, 'user:', user, 'profile:', profile);
 
   return (
     <AuthContext.Provider value={value}>
