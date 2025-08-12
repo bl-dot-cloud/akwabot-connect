@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     console.log('Attempting sign in for:', email);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
@@ -168,6 +168,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Welcome back!",
         description: "You have successfully signed in"
       });
+      
+      // Redirect based on user role after successful sign in
+      if (data?.session?.user) {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', data.session.user.id)
+          .single();
+
+        // Note: Navigation will be handled by the auth state change
+        console.log('User role:', userProfile?.role);
+      }
     }
     
     return { error };

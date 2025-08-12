@@ -84,6 +84,7 @@ export type Database = {
           description: string
           file_url: string | null
           id: string
+          priority: Database["public"]["Enums"]["priority_type"]
           status: Database["public"]["Enums"]["status_type"]
           title: string
           updated_at: string
@@ -96,6 +97,7 @@ export type Database = {
           description: string
           file_url?: string | null
           id?: string
+          priority?: Database["public"]["Enums"]["priority_type"]
           status?: Database["public"]["Enums"]["status_type"]
           title: string
           updated_at?: string
@@ -108,6 +110,7 @@ export type Database = {
           description?: string
           file_url?: string | null
           id?: string
+          priority?: Database["public"]["Enums"]["priority_type"]
           status?: Database["public"]["Enums"]["status_type"]
           title?: string
           updated_at?: string
@@ -194,6 +197,7 @@ export type Database = {
         | "customer_service"
         | "account_update"
         | "general_inquiry"
+      priority_type: "low" | "medium" | "high" | "urgent"
       status_type: "pending" | "in_progress" | "resolved" | "closed"
       user_role: "customer" | "admin" | "staff"
     }
@@ -329,6 +333,7 @@ export const Constants = {
         "account_update",
         "general_inquiry",
       ],
+      priority_type: ["low", "medium", "high", "urgent"],
       status_type: ["pending", "in_progress", "resolved", "closed"],
       user_role: ["customer", "admin", "staff"],
     },
