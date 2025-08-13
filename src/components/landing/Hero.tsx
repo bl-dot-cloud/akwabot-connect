@@ -60,7 +60,7 @@ const Hero = () => {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-6 h-auto text-white border-white hover:bg-white hover:text-primary"
+                  className="text-lg px-8 py-6 h-auto text-black border-white hover:bg-white hover:text-primary"
                 >
                   Go to Dashboard
                 </Button>
@@ -70,7 +70,7 @@ const Hero = () => {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-6 h-auto text-white border-white hover:bg-white hover:text-primary"
+                  className="text-lg px-8 py-6 h-auto text-black border-white hover:bg-white hover:text-primary"
                 >
                   Login to Account
                 </Button>

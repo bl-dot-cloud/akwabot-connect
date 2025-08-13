@@ -14,7 +14,7 @@ const Header = () => {
       navigate('/auth');
     } else {
       // Navigate to home page where chat interface is available
-      navigate('/', { replace: true });
+      navigate('/ChatPage', { replace: true });
       // Small delay to ensure navigation, then scroll to chat
       setTimeout(() => {
         const chatElement = document.querySelector('[data-chat-interface]');
