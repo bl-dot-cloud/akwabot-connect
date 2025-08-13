@@ -188,10 +188,10 @@ const Dashboard = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
               <ComplaintForm onComplaintSubmitted={fetchUserData} />
-              <Link to="/">
+              <Link to="/chat">
                 <Button variant="outline">
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Start New Chat
+                  Start Chatting
                 </Button>
               </Link>
             </div>
@@ -343,7 +343,7 @@ const Dashboard = () => {
                       <p className="text-muted-foreground mb-4">
                         Start a conversation with our AI assistant or support team
                       </p>
-                      <Link to="/">
+                      <Link to="/chat">
                         <Button>
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Start Chat
