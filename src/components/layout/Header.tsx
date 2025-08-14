@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, Menu, X, Phone, Mail, MapPin, User, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
+import ChatInterface from "../chatbot/ChatInterface";
 
 const Header = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut, profile } = useAuth();
   const navigate = useNavigate();
@@ -12,17 +15,11 @@ const Header = () => {
   const handleChatClick = () => {
     if (!user) {
       navigate('/auth');
-    } else {
-      // Navigate to home page where chat interface is available
-      navigate('/ChatPage', { replace: true });
-      // Small delay to ensure navigation, then scroll to chat
-      setTimeout(() => {
-        const chatElement = document.querySelector('[data-chat-interface]');
-        if (chatElement) {
-          chatElement.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
+      return;
     }
+    
+    setIsChatOpen(true);
+    setIsChatMinimized(false);
   };
 
   return (
@@ -161,6 +158,13 @@ const Header = () => {
           </div>
         )}
       </div>
+      {user && isChatOpen && (
+        <ChatInterface 
+          isMinimized={isChatMinimized}
+          onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
+          onClose={() => setIsChatOpen(false)} 
+        />
+      )}
     </header>
   );
 };

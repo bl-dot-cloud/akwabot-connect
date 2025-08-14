@@ -3,20 +3,29 @@ import { MessageCircle, Users, Shield, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
+import ChatInterface from "../chatbot/ChatInterface";
+import { useState } from "react";
 
 const Hero = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
 
   const handleChatClick = () => {
     if (!user) {
       navigate('/auth');
-    } else {
-      // Scroll to chat interface
-      const chatElement = document.querySelector('[data-chat-interface]');
-      if (chatElement) {
-        chatElement.scrollIntoView({ behavior: 'smooth' });
-      }
+      return; // Exit early if not authenticated
+    }
+    
+    // Only open chat if user is authenticated
+    setIsChatOpen(true);
+    setIsChatMinimized(false);
+    
+    // Scroll to chat interface
+    const chatElement = document.querySelector('[data-chat-interface]');
+    if (chatElement) {
+      chatElement.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -30,7 +39,7 @@ const Hero = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-trust/80 to-secondary/90" />
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center text-white">
+      <div className="relative z-10 container mx-auto px-4 text-center text-white pt-28">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
             Your Trusted
@@ -109,6 +118,15 @@ const Hero = () => {
 
       {/* Decorative Elements */}
       <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent" />
+      
+      {/* Only show chat interface if user is authenticated AND chat is open */}
+      {user && isChatOpen && (
+        <ChatInterface 
+          isMinimized={isChatMinimized}
+          onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
+          onClose={() => setIsChatOpen(false)} 
+        />
+      )}
     </section>
   );
 };

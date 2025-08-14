@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import FAQManager from '@/components/admin/FAQManager';
+import NotificationManager from '@/components/admin/NotificationManager';
 import { 
   Users, 
   FileText, 
@@ -59,14 +61,14 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     setLoadingData(true);
     try {
-      // Fetch all complaints
-      const { data: complaintsData, error: complaintsError } = await supabase
-        .from('complaints')
-        .select(`
-          *,
-          profiles!inner(full_name, user_id)
-        `)
-        .order('created_at', { ascending: false });
+              // Fetch all complaints with user profiles
+              const { data: complaintsData, error: complaintsError } = await supabase
+                .from('complaints')
+                .select(`
+                  *,
+                  profiles(full_name, user_id)
+                `)
+                .order('created_at', { ascending: false });
 
       if (complaintsError) {
         console.error('Error fetching complaints:', complaintsError);
@@ -74,14 +76,14 @@ const AdminDashboard = () => {
         setComplaints(complaintsData || []);
       }
 
-      // Fetch all chat sessions
-      const { data: chatData, error: chatError } = await supabase
-        .from('chat_sessions')
-        .select(`
-          *,
-          profiles!inner(full_name, user_id)
-        `)
-        .order('updated_at', { ascending: false });
+              // Fetch all chat sessions with user profiles
+              const { data: chatData, error: chatError } = await supabase
+                .from('chat_sessions')
+                .select(`
+                  *,
+                  profiles(full_name, user_id)
+                `)
+                .order('updated_at', { ascending: false });
 
       if (chatError) {
         console.error('Error fetching chat sessions:', chatError);
@@ -279,11 +281,13 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="complaints" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="complaints">Complaints</TabsTrigger>
             <TabsTrigger value="chats">Chat Sessions</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="cms">CMS</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="complaints">
@@ -488,7 +492,111 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span>Today's Complaints</span>
+                      <span className="font-bold">{complaints.filter(c => 
+                        new Date(c.created_at).toDateString() === new Date().toDateString()
+                      ).length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>This Week's Complaints</span>
+                      <span className="font-bold">{complaints.filter(c => {
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return new Date(c.created_at) >= weekAgo;
+                      }).length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Chat Sessions</span>
+                      <span className="font-bold">{chatSessions.filter(s => {
+                        const dayAgo = new Date();
+                        dayAgo.setDate(dayAgo.getDate() - 1);
+                        return new Date(s.updated_at) >= dayAgo;
+                      }).length}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                     {Object.entries(complaints.reduce((acc, c) => {
+                       acc[c.category] = (acc[c.category] || 0) + 1;
+                       return acc;
+                     }, {} as Record<string, number>)).map(([category, count]) => (
+                       <div key={category} className="flex justify-between">
+                         <span className="capitalize">{category.replace('_', ' ')}</span>
+                         <span className="font-bold">{count as number}</span>
+                       </div>
+                     ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="cms">
+            <div className="space-y-6">
+              <FAQManager onFAQsUpdated={fetchAdminData} />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Chatbot Templates</CardTitle>
+                  <CardDescription>
+                    Manage predefined response templates for the chatbot
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">Chatbot template management will be available soon.</p>
+                    <p className="text-sm text-muted-foreground">This feature will allow you to create and manage predefined responses for common queries.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Office Hours & Settings</CardTitle>
+                  <CardDescription>
+                    Configure business hours and availability
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="font-medium">Current Office Hours</p>
+                        <p className="text-muted-foreground">Monday - Friday: 8:00 AM - 6:00 PM</p>
+                        <p className="text-muted-foreground">Saturday: 9:00 AM - 2:00 PM</p>
+                        <p className="text-muted-foreground">Sunday: Closed</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Contact Information</p>
+                        <p className="text-muted-foreground">Phone: +234 (0) 803 123 4567</p>
+                        <p className="text-muted-foreground">Email: info@akwaloan.com</p>
+                        <p className="text-muted-foreground">Address: Ikot Ekpene, Akwa Ibom</p>
+                      </div>
+                    </div>
+                    <Button variant="outline">Update Settings</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationManager onNotificationsSent={fetchAdminData} />
           </TabsContent>
         </Tabs>
       </div>

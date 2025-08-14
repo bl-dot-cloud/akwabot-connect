@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Bot, User, Minimize2, Maximize2 } from "lucide-react";
+import { Send, Bot, User, Minimize2, Maximize2, ChevronLeft } from "lucide-react";
 import chatbotIcon from "@/assets/chatbot-icon.jpg";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -16,9 +17,13 @@ interface Message {
 interface ChatInterfaceProps {
   isMinimized?: boolean;
   onToggleMinimize?: () => void;
+   onClose?: () => void;
 }
 
-const ChatInterface = ({ isMinimized = false, onToggleMinimize }: ChatInterfaceProps) => {
+const ChatInterface = ({ isMinimized = false, onToggleMinimize, onClose }: ChatInterfaceProps) => {
+   const location = useLocation();
+  const navigate = useNavigate();
+  const isFullPage = location.pathname === '/ChatPage';
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -115,11 +120,22 @@ const ChatInterface = ({ isMinimized = false, onToggleMinimize }: ChatInterfaceP
     );
   }
 
+
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[600px] bg-white rounded-xl shadow-elegant border border-border z-50 flex flex-col" data-chat-interface>
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-trust text-white p-4 rounded-t-xl flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+<div className="fixed bottom-4 right-4 w-96 h-[600px] bg-white rounded-xl shadow-elegant border border-border z-50 flex flex-col">
+        {/* Header */}
+<div className="bg-gradient-to-r from-primary to-trust text-white p-4 rounded-t-xl flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+          {isFullPage && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="text-white hover:bg-white/20 mr-2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
           <Avatar className="h-10 w-10">
             <AvatarImage src={chatbotIcon} alt="Akwa Bot" />
             <AvatarFallback className="bg-white text-primary">AB</AvatarFallback>
@@ -135,7 +151,7 @@ const ChatInterface = ({ isMinimized = false, onToggleMinimize }: ChatInterfaceP
           onClick={onToggleMinimize}
           className="text-white hover:bg-white/20"
         >
-          <Minimize2 className="h-4 w-4" />
+          {isFullPage ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
         </Button>
       </div>
 

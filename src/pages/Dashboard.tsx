@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import ComplaintForm from '@/components/dashboard/ComplaintForm';
 import ChatHistoryCard from '@/components/dashboard/ChatHistoryCard';
 import { Link } from 'react-router-dom';
+import ChatInterface from '@/components/chatbot/ChatInterface';
 
 const Dashboard = () => {
   const { user, loading, signOut, profile } = useAuth();
@@ -19,6 +20,9 @@ const Dashboard = () => {
   const [chatSessions, setChatSessions] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+
 
   console.log('Dashboard render - user:', user, 'loading:', loading, 'profile:', profile);
 
@@ -188,12 +192,16 @@ const Dashboard = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
               <ComplaintForm onComplaintSubmitted={fetchUserData} />
-              <Link to="/">
-                <Button variant="outline">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Start New Chat
-                </Button>
-              </Link>
+              <Button 
+        variant="outline" 
+        onClick={() => {
+          setIsChatOpen(true);
+          setIsChatMinimized(false);
+        }}
+      >
+        <MessageCircle className="h-4 w-4 mr-2" />
+        Start Chatting
+      </Button>
             </div>
           </div>
         </div>
@@ -343,12 +351,16 @@ const Dashboard = () => {
                       <p className="text-muted-foreground mb-4">
                         Start a conversation with our AI assistant or support team
                       </p>
-                      <Link to="/">
-                        <Button>
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Start Chat
-                        </Button>
-                      </Link>
+                      <Button 
+        variant="outline" 
+        onClick={() => {
+          setIsChatOpen(true);
+          setIsChatMinimized(false);
+        }}
+      >
+        <MessageCircle className="h-4 w-4 mr-2" />
+        Start Chatting
+      </Button>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -407,6 +419,13 @@ const Dashboard = () => {
           </Tabs>
         )}
       </div>
+      {isChatOpen && (
+        <ChatInterface 
+          isMinimized={isChatMinimized}
+          onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
+          onClose={() => setIsChatOpen(false)} 
+        />
+      )}
     </div>
   );
 };

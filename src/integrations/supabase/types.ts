@@ -76,8 +76,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chatbot_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          template: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          template: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          template?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       complaints: {
         Row: {
+          admin_notes: string | null
           assigned_to: string | null
           category: Database["public"]["Enums"]["complaint_category"]
           created_at: string
@@ -91,6 +122,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           assigned_to?: string | null
           category: Database["public"]["Enums"]["complaint_category"]
           created_at?: string
@@ -104,6 +136,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           assigned_to?: string | null
           category?: Database["public"]["Enums"]["complaint_category"]
           created_at?: string
@@ -115,6 +148,36 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      faqs: {
+        Row: {
+          answer: string
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -183,6 +246,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -197,6 +264,9 @@ export type Database = {
         | "customer_service"
         | "account_update"
         | "general_inquiry"
+        | "payment_issue"
+        | "documentation"
+        | "technical_support"
       priority_type: "low" | "medium" | "high" | "urgent"
       status_type: "pending" | "in_progress" | "resolved" | "closed"
       user_role: "customer" | "admin" | "staff"
@@ -332,6 +402,9 @@ export const Constants = {
         "customer_service",
         "account_update",
         "general_inquiry",
+        "payment_issue",
+        "documentation",
+        "technical_support",
       ],
       priority_type: ["low", "medium", "high", "urgent"],
       status_type: ["pending", "in_progress", "resolved", "closed"],
