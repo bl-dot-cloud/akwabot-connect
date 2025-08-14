@@ -15,7 +15,7 @@ const ChatPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {/* <Header />
       
       <main className="pt-24 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8">
@@ -26,7 +26,7 @@ const ChatPage = () => {
             <p className="text-muted-foreground text-lg">
               Get instant help with loans, applications, and customer service
             </p>
-          </div>
+          </div> */}
           
           {/* Full-screen chat interface */}
           <div className="max-w-4xl mx-auto">
@@ -38,8 +38,8 @@ const ChatPage = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    //   </main>
+    // </div>
   );
 };
 
