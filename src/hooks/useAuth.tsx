@@ -63,9 +63,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Don't redirect here, let the component handle it
+          // Fetch profile for the authenticated user
           console.log('User authenticated, fetching profile...');
-          await refreshProfile();
+          setTimeout(async () => {
+            try {
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+              
+              if (error) {
+                console.error('Error fetching profile:', error);
+              } else {
+                console.log('Profile fetched successfully:', data);
+                setProfile(data);
+              }
+            } catch (error) {
+              console.error('Error in profile fetch:', error);
+            }
+          }, 0);
         } else {
           console.log('No user session, clearing profile');
           setProfile(null);
@@ -95,7 +112,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (session?.user) {
           console.log('Initial session found, fetching profile...');
-          await refreshProfile();
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            
+            if (error) {
+              console.error('Error fetching profile:', error);
+            } else {
+              console.log('Profile fetched successfully:', data);
+              setProfile(data);
+            }
+          } catch (error) {
+            console.error('Error in profile fetch:', error);
+          }
         }
         
         setLoading(false);
