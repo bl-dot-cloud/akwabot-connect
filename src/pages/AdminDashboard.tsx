@@ -38,24 +38,17 @@ const AdminDashboard = () => {
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
   const [updateData, setUpdateData] = useState<{ status: string; admin_notes: string }>({ status: '', admin_notes: '' });
 
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
+  // 2. Redirect if not authenticated
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Check if user is admin/staff
+  // 3. Only now check the role after profile is confirmed loaded
   const isAdmin = profile?.role === 'admin' || profile?.role === 'staff';
-  if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+  
+  if (profile?.role === 'admin') {
+    console.log('Redirecting to admin - user role:', profile?.role);
+    return <Navigate to="/AdminDashboard" replace />;
   }
 
   const fetchAdminData = async () => {
