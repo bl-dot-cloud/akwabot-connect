@@ -1,0 +1,5 @@
+-- First, you need to sign up with admin@akwaloan.com, then run this to update the role
+-- This will be run after you create the auth user
+-- UPDATE public.profiles 
+-- SET role = 'admin', full_name = 'System Administrator' 
+-- WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@akwaloan.com');
