@@ -52,7 +52,15 @@ const AdminDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Check if user is admin/staff
+  // Check if user is admin/staff - wait for profile to load
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   const isAdmin = profile?.role === 'admin' || profile?.role === 'staff';
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
