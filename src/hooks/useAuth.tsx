@@ -49,12 +49,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        console.log('Profile fetched successfully:', data);
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in profile fetch:', error);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, 'Session:', session);
         
         if (!mounted) return;
@@ -65,22 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           // Fetch profile for the authenticated user
           console.log('User authenticated, fetching profile...');
-          try {
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            
-            if (error) {
-              console.error('Error fetching profile:', error);
-            } else {
-              console.log('Profile fetched successfully:', data);
-              setProfile(data);
-            }
-          } catch (error) {
-            console.error('Error in profile fetch:', error);
-          }
+          fetchProfile(session.user.id);
         } else {
           console.log('No user session, clearing profile');
           setProfile(null);
@@ -110,22 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (session?.user) {
           console.log('Initial session found, fetching profile...');
-          try {
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            
-            if (error) {
-              console.error('Error fetching profile:', error);
-            } else {
-              console.log('Profile fetched successfully:', data);
-              setProfile(data);
-            }
-          } catch (error) {
-            console.error('Error in profile fetch:', error);
-          }
+          fetchProfile(session.user.id);
         }
         
         setLoading(false);
@@ -217,19 +206,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     console.log('Attempting sign out');
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        toast({
+          variant: "destructive",
+          title: "Sign out failed",
+          description: error.message
+        });
+      } else {
+        console.log('Sign out successful');
+        // Clear local state
+        setUser(null);
+        setSession(null);
+        setProfile(null);
+        toast({
+          title: "Signed out",
+          description: "You have been signed out successfully"
+        });
+      }
+    } catch (error: any) {
       console.error('Sign out error:', error);
       toast({
         variant: "destructive",
         title: "Sign out failed",
         description: error.message
-      });
-    } else {
-      console.log('Sign out successful');
-      toast({
-        title: "Signed out",
-        description: "You have been signed out successfully"
       });
     }
   };

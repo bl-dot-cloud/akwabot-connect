@@ -69,33 +69,36 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     setLoadingData(true);
     try {
-              // Fetch all complaints with user profiles
-              const { data: complaintsData, error: complaintsError } = await supabase
-                .from('complaints')
-                .select(`
-                  *,
-                  profiles(full_name, user_id)
-                `)
-                .order('created_at', { ascending: false });
+      console.log('Fetching admin data...');
+      
+      // Fetch all complaints first
+      const { data: complaintsData, error: complaintsError } = await supabase
+        .from('complaints')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (complaintsError) {
         console.error('Error fetching complaints:', complaintsError);
+        toast({
+          variant: "destructive",
+          title: "Error fetching complaints",
+          description: complaintsError.message
+        });
       } else {
+        console.log('Fetched complaints:', complaintsData);
         setComplaints(complaintsData || []);
       }
 
-              // Fetch all chat sessions with user profiles
-              const { data: chatData, error: chatError } = await supabase
-                .from('chat_sessions')
-                .select(`
-                  *,
-                  profiles(full_name, user_id)
-                `)
-                .order('updated_at', { ascending: false });
+      // Fetch all chat sessions
+      const { data: chatData, error: chatError } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .order('updated_at', { ascending: false });
 
       if (chatError) {
         console.error('Error fetching chat sessions:', chatError);
       } else {
+        console.log('Fetched chat sessions:', chatData);
         setChatSessions(chatData || []);
       }
 
@@ -109,10 +112,16 @@ const AdminDashboard = () => {
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
       } else {
+        console.log('Fetched profiles:', profilesData);
         setProfiles(profilesData || []);
       }
     } catch (error) {
       console.error('Error in fetchAdminData:', error);
+      toast({
+        variant: "destructive",
+        title: "Error loading data",
+        description: "Failed to load dashboard data"
+      });
     } finally {
       setLoadingData(false);
     }
@@ -120,6 +129,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (user && isAdmin) {
+      console.log('Admin authenticated, fetching data');
       fetchAdminData();
     }
   }, [user, isAdmin]);
@@ -282,7 +292,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-warning">{satisfactionRate}</div>
-              <p className="text-xs text-muted-foreground">Customer satisfaction</p>
+              <p className="text-xs text-muted-foreference">Customer satisfaction</p>
             </CardContent>
           </Card>
         </div>
@@ -311,6 +321,12 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
+                ) : complaints.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No complaints yet</h3>
+                    <p className="text-muted-foreground">Customer complaints will appear here</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {complaints.map((complaint) => (
@@ -319,7 +335,7 @@ const AdminDashboard = () => {
                           <div>
                             <h3 className="font-semibold text-lg">{complaint.title}</h3>
                             <p className="text-sm text-muted-foreground">
-                              By: {complaint.profiles?.full_name || 'Unknown User'}
+                              User ID: {complaint.user_id}
                             </p>
                           </div>
                           <div className="flex gap-2">
@@ -397,7 +413,7 @@ const AdminDashboard = () => {
                             </span>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            User: {session.profiles?.full_name || 'Unknown User'}
+                            User ID: {session.user_id}
                           </p>
                         </div>
                       ))
