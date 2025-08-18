@@ -33,7 +33,7 @@ const App: React.FC = () => {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/AdminDashboard" element={<AdminDashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/chat" element={<ChatPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

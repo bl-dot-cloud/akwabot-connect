@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 
 const Auth = () => {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   // Form states
@@ -27,8 +27,9 @@ const Auth = () => {
   });
 
   // Redirect if already authenticated
-  if (!loading && user) {
-    return <Navigate to="/dashboard" replace />;
+  if (!loading && user && profile) {
+    const redirectPath = profile.role === 'admin' ? '/admin' : '/dashboard';
+    return <Navigate to={redirectPath} replace />;
   }
 
   const handleSignIn = async (e: React.FormEvent) => {

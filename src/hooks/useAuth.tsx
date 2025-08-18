@@ -48,12 +48,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        console.log('Profile fetched successfully:', data);
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in profile fetch:', error);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, 'Session:', session);
         
         if (!mounted) return;
@@ -62,9 +81,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Don't redirect here, let the component handle it
+          // Fetch profile for the authenticated user
           console.log('User authenticated, fetching profile...');
-          await refreshProfile();
+          fetchProfile(session.user.id);
         } else {
           console.log('No user session, clearing profile');
           setProfile(null);
@@ -94,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (session?.user) {
           console.log('Initial session found, fetching profile...');
-          await refreshProfile();
+          fetchProfile(session.user.id);
         }
         
         setLoading(false);
@@ -184,8 +203,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signOut = async () => {
-    console.log('Attempting sign out');
+ const signOut = async () => {
+  console.log('Attempting sign out');
+  try {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Sign out error:', error);
@@ -196,12 +216,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     } else {
       console.log('Sign out successful');
+      // Clear local state
+      setUser(null);
+      setSession(null);
+      setProfile(null);
       toast({
         title: "Signed out",
         description: "You have been signed out successfully"
       });
+      // Redirect to login page after successful signout
+      window.location.href = '/auth'; // or use your router's navigation method
     }
-  };
+  } catch (error: any) {
+    console.error('Sign out error:', error);
+    toast({
+      variant: "destructive",
+      title: "Sign out failed",
+      description: error.message
+    });
+  }
+};
 
   const value = {
     user,
