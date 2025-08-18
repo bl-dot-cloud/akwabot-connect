@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -204,37 +203,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signOut = async () => {
-    console.log('Attempting sign out');
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-        toast({
-          variant: "destructive",
-          title: "Sign out failed",
-          description: error.message
-        });
-      } else {
-        console.log('Sign out successful');
-        // Clear local state
-        setUser(null);
-        setSession(null);
-        setProfile(null);
-        toast({
-          title: "Signed out",
-          description: "You have been signed out successfully"
-        });
-      }
-    } catch (error: any) {
+ const signOut = async () => {
+  console.log('Attempting sign out');
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
       console.error('Sign out error:', error);
       toast({
         variant: "destructive",
         title: "Sign out failed",
         description: error.message
       });
+    } else {
+      console.log('Sign out successful');
+      // Clear local state
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully"
+      });
+      // Redirect to login page after successful signout
+      window.location.href = '/auth'; // or use your router's navigation method
     }
-  };
+  } catch (error: any) {
+    console.error('Sign out error:', error);
+    toast({
+      variant: "destructive",
+      title: "Sign out failed",
+      description: error.message
+    });
+  }
+};
 
   const value = {
     user,

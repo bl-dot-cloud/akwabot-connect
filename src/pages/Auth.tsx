@@ -36,6 +36,7 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     
+    
     const { error } = await signIn(signInForm.email, signInForm.password);
     
     if (!error) {
